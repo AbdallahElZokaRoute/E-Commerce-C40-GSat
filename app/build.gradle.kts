@@ -1,6 +1,8 @@
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.jetbrains.kotlin.android)
+    id("com.google.dagger.hilt.android")
+    id("kotlin-kapt")
 }
 
 android {
@@ -61,11 +63,20 @@ dependencies {
     implementation(libs.androidx.material3)
     // Jetpack Compose integration
     implementation(libs.androidx.navigation.compose)
+    implementation(project(":domain"))
+    implementation(project(":data"))
     testImplementation(libs.junit)
+    implementation(libs.androidx.hilt.navigation.compose)
+    implementation(libs.glide.compose)
+    implementation("com.google.dagger:hilt-android:2.51.1")
+    kapt("com.google.dagger:hilt-android-compiler:2.51.1")
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
     androidTestImplementation(platform(libs.androidx.compose.bom))
     androidTestImplementation(libs.androidx.ui.test.junit4)
     debugImplementation(libs.androidx.ui.tooling)
     debugImplementation(libs.androidx.ui.test.manifest)
+}
+kapt {
+    correctErrorTypes = true
 }

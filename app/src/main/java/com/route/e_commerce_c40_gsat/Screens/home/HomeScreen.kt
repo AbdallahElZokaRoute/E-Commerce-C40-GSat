@@ -18,8 +18,10 @@ import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyHorizontalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Card
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
@@ -28,6 +30,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -44,13 +47,21 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
+import com.bumptech.glide.integration.compose.ExperimentalGlideComposeApi
+import com.bumptech.glide.integration.compose.GlideImage
+import com.route.domain.entity.category.CategoryDataItemEntity
 import com.route.e_commerce_c40_gsat.R
 import com.route.e_commerce_c40_gsat.model.Categroies
 
 
 @Composable
 fun HomeScreen(categoriesList: List<Categroies>, modifier: Modifier = Modifier) {
-    Column(modifier = modifier.padding(16.dp)) {
+    Column(
+        modifier = modifier
+            .padding(16.dp)
+            .verticalScroll(rememberScrollState())
+    ) {
         Image(
             painter = painterResource(id = R.drawable.route_logo),
             contentDescription = "Route",
@@ -99,14 +110,14 @@ fun HomeScreen(categoriesList: List<Categroies>, modifier: Modifier = Modifier) 
 
         }
 
-        CategoriesHorizontalList(categroiesList = categoriesList)
+        CategoriesHorizontalList()
         Text(
             text = "Home Appliance",
             fontSize = 20.sp,
             color = colorResource(id = R.color.blue),
             fontWeight = FontWeight.W500,
-            modifier = modifier
-                .padding(start = 22.dp, top = 12.dp)
+//            modifier = modifier
+//                .padding(start = 22.dp, top = 12.dp)
         )
 
 
@@ -116,8 +127,9 @@ fun HomeScreen(categoriesList: List<Categroies>, modifier: Modifier = Modifier) 
 }
 
 
+@OptIn(ExperimentalGlideComposeApi::class)
 @Composable
-fun CategoryItem(categroies: Categroies, modifier: Modifier = Modifier) {
+fun CategoryItem(categroies: CategoryDataItemEntity, modifier: Modifier = Modifier) {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
         modifier = Modifier
@@ -125,8 +137,8 @@ fun CategoryItem(categroies: Categroies, modifier: Modifier = Modifier) {
             .padding(horizontal = 10.dp, vertical = 16.dp)
     ) {
 
-        Image(
-            painter = painterResource(id = categroies.categoriesImg), // Sample image
+        GlideImage(
+            model = categroies.image, // Sample image
             contentDescription = "Circular Image",
             contentScale = ContentScale.FillWidth,
             modifier = Modifier
@@ -139,7 +151,7 @@ fun CategoryItem(categroies: Categroies, modifier: Modifier = Modifier) {
         )
 
         Text(
-            text = categroies.categoriesName,
+            text = categroies.name ?: "",
             style = MaterialTheme.typography.titleMedium,
             maxLines = 2,
             textAlign = TextAlign.Center,
@@ -153,8 +165,13 @@ fun CategoryItem(categroies: Categroies, modifier: Modifier = Modifier) {
 
 
 @Composable
-fun CategoriesHorizontalList(categroiesList: List<Categroies>, modifier: Modifier = Modifier) {
-
+fun CategoriesHorizontalList(
+    modifier: Modifier = Modifier,
+    viewModel: HomeViewModel = hiltViewModel()
+) {
+    LaunchedEffect(key1 = Unit) {
+        viewModel.getCategories()
+    }
     LazyHorizontalGrid(
         rows = GridCells.Fixed(2),
         modifier = modifier
@@ -163,7 +180,7 @@ fun CategoriesHorizontalList(categroiesList: List<Categroies>, modifier: Modifie
             .padding(horizontal = 12.dp),
         horizontalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        items(categroiesList) { item ->
+        items(viewModel.categoriesStateList) { item ->
             CategoryItem(item)
         }
     }
@@ -174,7 +191,7 @@ fun CategoriesHorizontalList(categroiesList: List<Categroies>, modifier: Modifie
 @Preview
 @Composable
 private fun CategroiesHorizontalListPreview() {
-    CategoriesHorizontalList(categroiesList = listOf())
+    CategoriesHorizontalList()
 }
 
 @Composable
@@ -235,7 +252,7 @@ fun SearchBar(modifier: Modifier = Modifier) {
             unfocusedBorderColor = Color.Transparent,
             focusedPlaceholderColor = Color.Transparent,
             focusedBorderColor = Color.Transparent
- 
+
 
         ),
         modifier = modifier

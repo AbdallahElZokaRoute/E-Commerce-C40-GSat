@@ -8,12 +8,15 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -24,6 +27,7 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.NavHostController
 import com.route.e_commerce_c40_gsat.R
@@ -42,12 +46,16 @@ fun LoginScreenContent(modifier: Modifier = Modifier, navController: NavHostCont
             .background(colorResource(R.color.blue))
     ) {
         MyRouteImage(Modifier)
-        LoginContent(modifier, navController)
+        LoginContent(modifier, navController = navController)
     }
 }
 
 @Composable
-fun LoginContent(modifier: Modifier = Modifier, navController: NavHostController) {
+fun LoginContent(
+    modifier: Modifier = Modifier,
+    viewModel: LoginViewModel = hiltViewModel(),
+    navController: NavHostController
+) {
     Column(modifier.padding(10.dp)) {
         MyText(
             modifier, "  Welcome Back To Route", FontWeight.Bold
@@ -56,19 +64,29 @@ fun LoginContent(modifier: Modifier = Modifier, navController: NavHostController
         TemplateBox(
             Modifier
                 .padding(0.dp)
-                .padding(vertical = 20.dp), "User Name\n",
-            "enter your name", null
+                .padding(vertical = 20.dp),
+            text = "Email\n",
+            placeholder = "enter your Email Address", img = null,
+            error = viewModel.emailError.value,
+            textValue = viewModel.email
         )
         TemplateBox(
-            Modifier.padding(0.dp), "Password\n", "enter your Password", R.drawable.img
+            Modifier.padding(0.dp),
+            text = "Password\n",
+            placeholder = "enter your Password",
+            img = R.drawable.img,
+            error = viewModel.passwordError.value,
+            textValue = viewModel.password
         )
         MyText(
             Modifier,
             "\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\tForgot password\n",
             null
         )
-        MyButton {
-            navController.navigate(Routes.HOME_SCREEN)
+        MyButton(showLoading = viewModel.showLoading) {
+            viewModel.login {
+                navController.navigate(Routes.HOME_SCREEN)
+            }
         }
         MyText(
             modifier = Modifier
@@ -79,27 +97,53 @@ fun LoginContent(modifier: Modifier = Modifier, navController: NavHostController
             "\nDon’t have an account? Create Account",
             null
         )
-
     }
+    ErrorDialog(message = viewModel.errorState.value, showMessage = viewModel.showMessage)
+
 }
 
 @Composable
-fun TemplateBox(modifier: Modifier = Modifier, text: String, placeholder: String, img: Int?) {
+fun ErrorDialog(
+    message: String,
+    showMessage: MutableState<Boolean>,
+    modifier: Modifier = Modifier
+) {
+    if (showMessage.value)
+        AlertDialog(onDismissRequest = {
+            showMessage.value = false
+        }, confirmButton = {
+            TextButton(onClick = { showMessage.value = false }) {
+                Text(text = "ok")
+            }
+        }, text = {
+            Text(text = message)
+        })
+}
+
+@Composable
+fun TemplateBox(
+    modifier: Modifier = Modifier,
+    textValue: MutableState<String>,
+    text: String,
+    placeholder: String,
+    img: Int?,
+    error: String
+) {
     Column(Modifier.padding(vertical = 15.dp)) {
-        val textValue = remember { mutableStateOf("") }
         Text(text, color = Color.White, fontSize = 20.sp)
         OutlinedTextField(
             modifier = Modifier.fillMaxWidth(),
             value = textValue.value,
             onValueChange = { textValue.value = it },
-
+            isError = error.isNotEmpty(),
             placeholder = { Text(text = placeholder) },
 
             shape = OutlinedTextFieldDefaults.shape,
             colors = OutlinedTextFieldDefaults.colors(
                 focusedContainerColor = Color.White,
                 unfocusedContainerColor = Color.White,
-                disabledContainerColor = Color.White
+                disabledContainerColor = Color.White,
+                errorContainerColor = Color.White,
             ),
             leadingIcon = {
                 if (img != null) {
@@ -107,6 +151,8 @@ fun TemplateBox(modifier: Modifier = Modifier, text: String, placeholder: String
                 }
             }
         )
+        if (error.isNotEmpty())
+            Text(text = error, color = Color.White)
     }
 }
 

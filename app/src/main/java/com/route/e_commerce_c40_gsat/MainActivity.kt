@@ -16,7 +16,9 @@ import com.route.e_commerce_c40_gsat.Screens.home.HomeScreen
 import com.route.e_commerce_c40_gsat.Screens.login.LoginScreenContent
 import com.route.e_commerce_c40_gsat.Screens.register.RegisterScreenContent
 import com.route.e_commerce_c40_gsat.ui.theme.ECommerceGSatTheme
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 class MainActivity : ComponentActivity() {
 
 

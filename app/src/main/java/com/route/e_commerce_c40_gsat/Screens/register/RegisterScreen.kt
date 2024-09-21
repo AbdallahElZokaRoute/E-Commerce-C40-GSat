@@ -14,10 +14,12 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -28,9 +30,12 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
 import com.route.e_commerce_c40_gsat.R
 import com.route.e_commerce_c40_gsat.Routes
+import com.route.e_commerce_c40_gsat.Screens.login.ErrorDialog
+import com.route.e_commerce_c40_gsat.Screens.login.TemplateBox
 
 @Composable
 fun RegisterScreenContent(modifier: Modifier = Modifier, navController: NavHostController) {
@@ -46,27 +51,54 @@ fun RegisterScreenContent(modifier: Modifier = Modifier, navController: NavHostC
             .verticalScroll(scrollState)
     ) {
         MyRouteImage(Modifier)
-        RegisterContent(modifier, navController)
+        RegisterContent(modifier, navController = navController)
         Spacer(modifier = Modifier.height(18.dp))
     }
 }
 
 @Composable
-fun RegisterContent(modifier: Modifier = Modifier, navController: NavHostController) {
+fun RegisterContent(
+    modifier: Modifier = Modifier,
+    viewModel: RegisterViewModel = hiltViewModel(),
+    navController: NavHostController
+) {
     Column(modifier.padding(10.dp)) {
         MyText(
             modifier, "  Welcome Back To Route", FontWeight.Bold
         )
         MyText(Modifier, "  Please sign Up with your mail", null)
-        TemplateBox(text = "Username\n", placeholder = "enter your name", img = null)
+        TemplateBox(
+            text = "Username\n",
+            placeholder = "enter your name",
+            img = null,
+            error = viewModel.userNameError.value,
+            textValue = viewModel.userName
+        )
         TemplateBox(
             Modifier
                 .padding(0.dp)
-                .padding(vertical = 20.dp), "Email Name\n",
-            "enter your name", null
+                .padding(vertical = 20.dp), text = "Phone number\n",
+            placeholder = "enter your phone number", img = null,
+            error = viewModel.phoneError.value,
+            textValue = viewModel.phone
         )
         TemplateBox(
-            Modifier.padding(0.dp), "Password\n", "enter your Password", R.drawable.img
+            Modifier
+                .padding(0.dp)
+                .padding(vertical = 20.dp),
+            text = "Email Name\n",
+            placeholder = "enter your Email address", img = null,
+            error = viewModel.emailError.value,
+            textValue = viewModel.email
+        )
+        TemplateBox(
+            Modifier.padding(0.dp),
+            text = "Password\n",
+            placeholder = "enter your Password",
+            img = R.drawable.img,
+            error = viewModel.passwordError.value,
+            textValue = viewModel.password
+
         )
 
         MyText(
@@ -74,8 +106,10 @@ fun RegisterContent(modifier: Modifier = Modifier, navController: NavHostControl
             "\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\t\tForgot password\n",
             null
         )
-        MyButton {
-            navController.navigate(Routes.HOME_SCREEN)
+        MyButton(showLoading = viewModel.showLoading) {
+            viewModel.register {
+                navController.navigate(Routes.HOME_SCREEN)
+            }
         }
         MyText(
             modifier = Modifier
@@ -84,37 +118,9 @@ fun RegisterContent(modifier: Modifier = Modifier, navController: NavHostControl
             "\nDon’t have an account? Create Account",
             null
         )
-
     }
+    ErrorDialog(message = viewModel.errorState.value, showMessage = viewModel.showMessage)
 }
-
-@Composable
-fun TemplateBox(modifier: Modifier = Modifier, text: String, placeholder: String, img: Int?) {
-    Column(Modifier.padding(vertical = 15.dp)) {
-        val textValue = remember { mutableStateOf("") }
-        Text(text, color = Color.White, fontSize = 20.sp)
-        OutlinedTextField(
-            modifier = Modifier.fillMaxWidth(),
-            value = textValue.value,
-            onValueChange = { textValue.value = it },
-
-            placeholder = { Text(text = placeholder) },
-
-            shape = OutlinedTextFieldDefaults.shape,
-            colors = OutlinedTextFieldDefaults.colors(
-                focusedContainerColor = Color.White,
-                unfocusedContainerColor = Color.White,
-                disabledContainerColor = Color.White
-            ),
-            leadingIcon = {
-                if (img != null) {
-                    painterResource(img)
-                }
-            }
-        )
-    }
-}
-
 
 @Composable
 fun MyRouteImage(modifier: Modifier = Modifier) {
@@ -133,11 +139,18 @@ fun MyText(modifier: Modifier = Modifier, text: String, weight: FontWeight?) {
 }
 
 @Composable
-fun MyButton(modifier: Modifier = Modifier, onButtonClick: () -> Unit) {
+fun MyButton(
+    modifier: Modifier = Modifier,
+    showLoading: MutableState<Boolean>,
+    onButtonClick: () -> Unit
+) {
     Button(
         onClick = onButtonClick,
         Modifier.fillMaxWidth(),
         shape = ButtonDefaults.shape,
         colors = ButtonDefaults.buttonColors(containerColor = Color.White)
-    ) { Text("Login", color = colorResource(R.color.blue), fontSize = 20.sp) }
+    ) {
+        if (showLoading.value) CircularProgressIndicator() else
+            Text("Login", color = colorResource(R.color.blue), fontSize = 20.sp)
+    }
 }
