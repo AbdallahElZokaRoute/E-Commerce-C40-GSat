@@ -21,4 +21,5 @@ dependencyResolutionManagement {
 
 rootProject.name = "E-Commerce-GSat"
 include(":app")
- 
+include(":data")
+include(":domain")
