@@ -19,6 +19,7 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -32,6 +33,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavHostController
+import com.route.e_commerce_c40_gsat.Destination
 import com.route.e_commerce_c40_gsat.R
 import com.route.e_commerce_c40_gsat.Routes
 import com.route.e_commerce_c40_gsat.Screens.login.ErrorDialog
@@ -107,20 +109,29 @@ fun RegisterContent(
             null
         )
         MyButton(showLoading = viewModel.showLoading) {
-            viewModel.register {
-                navController.navigate(Routes.HOME_SCREEN)
-            }
+            viewModel.register()
         }
-        MyText(
-            modifier = Modifier
-                .fillMaxWidth()
-                .clickable { },
-            "\nDon’t have an account? Create Account",
-            null
-        )
     }
+    MyText(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { },
+        "\nDon’t have an account? Create Account",
+        null
+    )
     ErrorDialog(message = viewModel.errorState.value, showMessage = viewModel.showMessage)
+    LaunchedEffect(viewModel.navigation.value) {
+        when (viewModel.navigation.value) {
+            Destination.Home -> navController.navigate(Routes.HOME_SCREEN)
+            Destination.Login -> {
+                navController.navigate(Routes.LOGIN_SCREEN)
+            }
+
+            Destination.Register -> {}
+        }
+    }
 }
+
 
 @Composable
 fun MyRouteImage(modifier: Modifier = Modifier) {

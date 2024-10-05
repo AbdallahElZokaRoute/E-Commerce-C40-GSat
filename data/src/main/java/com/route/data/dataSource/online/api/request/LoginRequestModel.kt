@@ -2,7 +2,7 @@ package com.route.data.dataSource.online.api.request
 
 import com.google.gson.annotations.SerializedName
 
-data class LoginRequest(
+data class LoginRequestModel(
 
 	@field:SerializedName("password")
 	val password: String? = null,

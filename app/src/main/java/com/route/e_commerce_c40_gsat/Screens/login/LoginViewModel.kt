@@ -7,14 +7,19 @@ import androidx.lifecycle.viewModelScope
 import com.route.domain.entity.ApiResult
 import com.route.domain.request.LoginRequestEntity
 import com.route.domain.usecases.auth.LoginUseCase
+import com.route.domain.usecases.auth.StoreTokenUseCase
+import com.route.e_commerce_c40_gsat.Destination
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltViewModel
 class LoginViewModel @Inject constructor(
-    private val loginUseCase: LoginUseCase
+    private val loginUseCase: LoginUseCase,
+    private val storeTokenUseCase: StoreTokenUseCase
 ) : ViewModel() {
     val email = mutableStateOf("")
     val emailError = mutableStateOf("")
@@ -24,6 +29,7 @@ class LoginViewModel @Inject constructor(
     val showLoading = mutableStateOf(false)
     val passwordError = mutableStateOf("")
     var emailPattern: String = "[a-zA-Z0-9._-]+@[a-z]+\\.+[a-z]+"
+    val navigation = mutableStateOf<Destination>(Destination.Login)
     fun validateFields(): Boolean {
         if (email.value.isEmpty() || email.value.isBlank()) {
             emailError.value = "Email Required"
@@ -49,31 +55,30 @@ class LoginViewModel @Inject constructor(
         return true
     }
 
-    fun login(onSuccess: () -> Unit) {
+    fun login() {
         if (validateFields())
             viewModelScope.launch {
                 showLoading.value = true
                 val response = loginUseCase(LoginRequestEntity(email.value, password.value))
-                when (response) {
-                    is ApiResult.Error -> {
-                        showLoading.value = false
-                        Log.e("TAG", "login: ${response.message}")
-                        errorState.value = response.message
-                        showMessage.value = true
-                    }
+                response.collect { result ->
+                    when (result) {
+                        is ApiResult.Error -> {
+                            errorState.value = result.message
+                            showMessage.value = true
+                        }
 
-                    is ApiResult.Loading -> {
-                        showLoading.value = true
-                        showMessage.value = false
-                    }
 
-                    is ApiResult.Success -> {
-                        showLoading.value = false
-                        showMessage.value = false
-                        onSuccess()
+                        is ApiResult.Loading -> {
+                            showLoading.value = result.showLoading
+                        }
+
+                        is ApiResult.Success -> {
+                            storeTokenUseCase(result.data.token ?: "")
+                            navigation.value = Destination.Home
+                        }
                     }
                 }
-
             }
+
     }
 }

@@ -8,6 +8,8 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -16,6 +18,7 @@ import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -30,6 +33,8 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.NavHostController
+import com.route.e_commerce_c40_gsat.BottomAppBarTabs
+import com.route.e_commerce_c40_gsat.Destination
 import com.route.e_commerce_c40_gsat.R
 import com.route.e_commerce_c40_gsat.Routes
 import com.route.e_commerce_c40_gsat.Screens.register.MyButton
@@ -56,7 +61,12 @@ fun LoginContent(
     viewModel: LoginViewModel = hiltViewModel(),
     navController: NavHostController
 ) {
-    Column(modifier.padding(10.dp)) {
+    val scrollState = rememberScrollState()
+    Column(
+        modifier
+            .padding(10.dp)
+            .verticalScroll(scrollState)
+    ) {
         MyText(
             modifier, "  Welcome Back To Route", FontWeight.Bold
         )
@@ -84,9 +94,7 @@ fun LoginContent(
             null
         )
         MyButton(showLoading = viewModel.showLoading) {
-            viewModel.login {
-                navController.navigate(Routes.HOME_SCREEN)
-            }
+            viewModel.login()
         }
         MyText(
             modifier = Modifier
@@ -99,7 +107,18 @@ fun LoginContent(
         )
     }
     ErrorDialog(message = viewModel.errorState.value, showMessage = viewModel.showMessage)
+    LaunchedEffect(viewModel.navigation.value) {
+        when (viewModel.navigation.value) {
+            Destination.Home -> {
+                navController.navigate(Routes.HOME_SCREEN)
+            }
 
+            Destination.Login -> {}
+            Destination.Register -> {
+                navController.navigate(Routes.REGISTER_SCREEN)
+            }
+        }
+    }
 }
 
 @Composable

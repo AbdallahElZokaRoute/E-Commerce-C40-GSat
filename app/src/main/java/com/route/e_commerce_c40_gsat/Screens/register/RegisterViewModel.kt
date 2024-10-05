@@ -1,6 +1,7 @@
 package com.route.e_commerce_c40_gsat.Screens.register
 
 import android.util.Log
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -8,6 +9,7 @@ import com.route.domain.entity.ApiResult
 import com.route.domain.request.LoginRequestEntity
 import com.route.domain.request.RegisterRequestEntity
 import com.route.domain.usecases.auth.RegisterUseCase
+import com.route.e_commerce_c40_gsat.Destination
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -28,6 +30,7 @@ class RegisterViewModel @Inject constructor(
     val showLoading = mutableStateOf(false)
     val passwordError = mutableStateOf("")
     var emailPattern: String = "[a-zA-Z0-9._-]+@[a-z]+\\.+[a-z]+"
+    val navigation: MutableState<Destination> = mutableStateOf(Destination.Register)
     fun validateFields(): Boolean {
         if (email.value.isEmpty() || email.value.isBlank()) {
             emailError.value = "Email Required"
@@ -53,7 +56,7 @@ class RegisterViewModel @Inject constructor(
         return true
     }
 
-    fun register(onSuccess: () -> Unit) {
+    fun register() {
         if (validateFields())
             viewModelScope.launch {
                 showLoading.value = true
@@ -67,26 +70,26 @@ class RegisterViewModel @Inject constructor(
                             name = userName.value
                         )
                     )
-                when (response) {
-                    is ApiResult.Error -> {
-                        showLoading.value = false
-                        Log.e("TAG", "login: ${response.message}")
-                        errorState.value = response.message
-                        showMessage.value = true
+                response.collect { result ->
+
+
+                    when (result) {
+                        is ApiResult.Error -> {
+                            errorState.value = result.message
+                            showMessage.value = true
+                        }
+
+                        is ApiResult.Loading -> {
+                            showLoading.value = result.showLoading
+                        }
+
+                        is ApiResult.Success -> {
+                            showMessage.value = false
+                            navigation.value = Destination.Home
+                        }
                     }
 
-                    is ApiResult.Loading -> {
-                        showLoading.value = true
-                        showMessage.value = false
-                    }
-
-                    is ApiResult.Success -> {
-                        showLoading.value = false
-                        showMessage.value = false
-                        onSuccess()
-                    }
                 }
-
             }
     }
 

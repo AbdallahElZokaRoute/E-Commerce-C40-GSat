@@ -9,11 +9,14 @@ data class AuthResponse(
     val statusMsg: String? = null,
 
     @field:SerializedName("message")
-    val message: String? = null
+    val message: String? = null,
+
+    @field:SerializedName("token")
+    val token: String? = null
 ) {
     fun toEntity(): AuthResponseEntity {
         return AuthResponseEntity(
-            statusMsg, message
+            statusMsg, message, token
         )
     }
 }

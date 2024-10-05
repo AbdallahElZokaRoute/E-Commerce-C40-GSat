@@ -42,9 +42,15 @@ dependencies {
     implementation(project(":domain"))
     implementation(libs.retrofit)
     implementation(libs.converter.gson)
+    implementation(libs.datastore.preferences)
     implementation("com.google.dagger:hilt-android:2.51.1")
     kapt("com.google.dagger:hilt-android-compiler:2.51.1")
     implementation(libs.logging.interceptor)
+    val mockkVersion = "1.13.12"
+    testImplementation("io.mockk:mockk-android:${mockkVersion}")
+    testImplementation("io.mockk:mockk-agent:${mockkVersion}")
+    testImplementation("org.jetbrains.kotlinx:kotlinx-coroutines-test:1.9.0-RC.2")
+
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
